@@ -28,7 +28,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         getContext().spawn(Environment.create(), "Environment");
         ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition), "UI");
         getContext().getLog().info("HomeAutomation Application started");
-    }A
+    }
 
     @Override
     public Receive<Void> createReceive() {

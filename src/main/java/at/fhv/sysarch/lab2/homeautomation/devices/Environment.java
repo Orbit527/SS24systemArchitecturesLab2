@@ -9,6 +9,13 @@ import java.util.Optional;
 
 public class Environment extends AbstractBehavior<Environment.EnvironmentCommand> {
 
+    enum Weather {
+        SUNNY,
+        CLOUDY,
+        RAINY,
+        STORMY
+    }
+
     public interface EnvironmentCommand {}
 
     public static final class TemperatureChanger implements EnvironmentCommand {
@@ -54,8 +61,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeTemperature(TemperatureChanger t) {
-        // TODO: Implement behavior for random changes to temperature
-        this.temperature += 0.1;
+        this.temperature += -2 + (float)(Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         getContext().getLog().info("Environment received {}", temperature);
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
         return this;
