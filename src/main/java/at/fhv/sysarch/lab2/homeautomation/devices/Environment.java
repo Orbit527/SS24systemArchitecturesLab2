@@ -23,15 +23,15 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     public static final class WeatherConditionsChanger implements EnvironmentCommand {
-        final Optional<Boolean> isSunny;
+        final Optional<Weather> isSunny;
 
-        public WeatherConditionsChanger(Optional<Boolean> isSunny) {
+        public WeatherConditionsChanger(Optional<Weather> isSunny) {
             this.isSunny = isSunny;
         }
     }
 
     private double temperature = 15.0;
-    private boolean isSunny = false;
+    private Weather isSunny = Weather.SUNNY;
 
     private final TimerScheduler<EnvironmentCommand> temperatureTimeScheduler;
     private final TimerScheduler<EnvironmentCommand> weatherTimeScheduler;
@@ -68,9 +68,15 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeWeather(WeatherConditionsChanger w) {
-        getContext().getLog().info("Environment Change Sun to {}", !isSunny);
-        // TODO: Implement behavior for random changes to weather. Include more than just sunny and not sunny
-        isSunny = !isSunny;
+        // randomly changes weather
+        Weather[] weathers = Weather.values();
+        int i;
+        do {
+            i = (int) (Math.random() * (0 + weathers.length));
+        } while (weathers[i] == isSunny);
+        isSunny = weathers[i];
+        getContext().getLog().info("Environment Change Sun to {}", isSunny);
+
         // TODO: Handling of weather change. Are sensors notified or do they read the weather information?
         return this;
     }
