@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public class Environment extends AbstractBehavior<Environment.EnvironmentCommand> {
 
-    enum Weather {
+    public enum Weather {
         SUNNY,
         CLOUDY,
         RAINY,
@@ -48,7 +48,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
         this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(5));
-        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.of(isSunny)), Duration.ofSeconds(35));
+        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.of(isSunny)), Duration.ofSeconds(5));
     }
 
     @Override
@@ -61,6 +61,8 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeTemperature(TemperatureChanger t) {
+        System.out.println(t + " AH");
+
         this.temperature += -2 + (float)(Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         getContext().getLog().info("Environment received {}", temperature);
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
@@ -68,6 +70,8 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeWeather(WeatherConditionsChanger w) {
+        // TODO: Proccess w input correctly
+        System.out.println(w.isSunny + " CH");
         // randomly changes weather
         Weather[] weathers = Weather.values();
         int i;

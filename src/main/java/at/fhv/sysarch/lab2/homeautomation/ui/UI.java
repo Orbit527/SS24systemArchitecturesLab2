@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
+import at.fhv.sysarch.lab2.homeautomation.devices.Environment;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
 
 import java.util.Optional;
@@ -17,17 +18,19 @@ public class UI extends AbstractBehavior<Void> {
 
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
+    private ActorRef<Environment.EnvironmentCommand> environment;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, environment));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
+        this.environment = environment;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -60,7 +63,10 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("a")) {
                 this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
             }
-            // TODO: process Input
+            if(command[0].equals("e") && command[1].equals("w")) {
+                this.environment.tell(new Environment.WeatherConditionsChanger(Optional.of(Environment.Weather.valueOf(command[2]))));
+            }
+                // TODO: process Input
         }
         getContext().getLog().info("UI done");
     }
