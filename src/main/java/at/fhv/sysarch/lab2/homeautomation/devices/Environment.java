@@ -11,6 +11,13 @@ import java.util.Random;
 
 public class Environment extends AbstractBehavior<Environment.EnvironmentCommand> {
 
+    public enum Weather {
+        SUNNY,
+        CLOUDY,
+        RAINY,
+        STORMY
+    }
+
     public interface EnvironmentCommand {}
 
     public static final class TemperatureChanger implements EnvironmentCommand {
@@ -18,15 +25,15 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     public static final class WeatherConditionsChanger implements EnvironmentCommand {
-        final Optional<Boolean> isSunny;
+        final Optional<Weather> isSunny;
 
-        public WeatherConditionsChanger(Optional<Boolean> isSunny) {
+        public WeatherConditionsChanger(Optional<Weather> isSunny) {
             this.isSunny = isSunny;
         }
     }
 
-    private double temperature = 20.0;
-    private boolean isSunny = false;
+    private double temperature = 15.0;
+    private Weather isSunny = Weather.SUNNY;
 
     private final TimerScheduler<EnvironmentCommand> temperatureTimeScheduler;
     private final TimerScheduler<EnvironmentCommand> weatherTimeScheduler;
@@ -61,13 +68,9 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeTemperature(TemperatureChanger t) {
-        // TODO: Implement behavior for random changes to temperature
+        System.out.println(t + " AH");
 
-        Random r = new Random();
-        int low = -10;
-        int high = 10;
-        int randomResult = r.nextInt(high-low) + low;
-        this.temperature += (double) randomResult / 10;
+        this.temperature += -2 + (float)(Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         getContext().getLog().info("Environment received {}", temperature);
 
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
@@ -75,9 +78,17 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeWeather(WeatherConditionsChanger w) {
-        getContext().getLog().info("Environment Change Sun to {}", !isSunny);
-        // TODO: Implement behavior for random changes to weather. Include more than just sunny and not sunny
-        isSunny = !isSunny;
+        // TODO: Proccess w input correctly
+        System.out.println(w.isSunny + " CH");
+        // randomly changes weather
+        Weather[] weathers = Weather.values();
+        int i;
+        do {
+            i = (int) (Math.random() * (0 + weathers.length));
+        } while (weathers[i] == isSunny);
+        isSunny = weathers[i];
+        getContext().getLog().info("Environment Change Sun to {}", isSunny);
+
         // TODO: Handling of weather change. Are sensors notified or do they read the weather information?
 
         this.weatherSensor.tell(new WeatherSensor.ReadWeather(isSunny));

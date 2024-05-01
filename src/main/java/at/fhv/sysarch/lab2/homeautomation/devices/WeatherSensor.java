@@ -19,9 +19,9 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
 
     public static final class ReadWeather implements WeatherSensorCommand {
 
-        Boolean value;
+        Environment.Weather value;
 
-        public ReadWeather(Boolean value) {
+        public ReadWeather(Environment.Weather value) {
             this.value = value;
         }
 
