@@ -1,5 +1,6 @@
 package at.fhv.sysarch.lab2.homeautomation.devices;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -25,20 +26,20 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
             this.value = value;
         }
 
-
-
     }
 
-    public static Behavior<WeatherSensorCommand> create (String groupId, String deviceId) {
-        return Behaviors.setup(context -> new WeatherSensor(context, groupId, deviceId));
+    public static Behavior<WeatherSensorCommand> create (ActorRef<Blinds.BlindsCommand> blinds, String groupId, String deviceId) {
+        return Behaviors.setup(context -> new WeatherSensor(context, blinds, groupId, deviceId));
     }
 
     private String groupId;
     private String deviceId;
+    private ActorRef<Blinds.BlindsCommand> blinds;
 
 
-    public WeatherSensor(ActorContext<WeatherSensorCommand> context, String groupId, String deviceId) {
+    public WeatherSensor(ActorContext<WeatherSensorCommand> context, ActorRef<Blinds.BlindsCommand> blinds, String groupId, String deviceId) {
         this(context);
+        this.blinds = blinds;
         this.groupId = groupId;
         this.deviceId = deviceId;
 
@@ -56,7 +57,10 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
 
     private Behavior<WeatherSensorCommand> onReadWeather(ReadWeather t) {
         getContext().getLog().info("WeatherSensor: " + t.value);
-        //TODO: send to AC
+        //TODO: send to Blinds
+
+        this.blinds.tell(new Blinds.setWeatherStatus(t.value));
+
         return this;
     }
 
@@ -64,5 +68,4 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
         getContext().getLog().info("WeatherSensor actor {}-{} stopped", groupId, deviceId);
         return this;
     }
-
 }

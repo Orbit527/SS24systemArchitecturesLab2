@@ -7,10 +7,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
-import at.fhv.sysarch.lab2.homeautomation.devices.Environment;
-import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
-import at.fhv.sysarch.lab2.homeautomation.devices.WeatherSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.*;
 import at.fhv.sysarch.lab2.homeautomation.ui.UI;
 
 public class HomeAutomationController extends AbstractBehavior<Void>{
@@ -18,6 +15,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
     private  ActorRef<AirCondition.AirConditionCommand> airCondition;
 
     private ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor;
+    private ActorRef<Blinds.BlindsCommand> blinds;
     private ActorRef<Environment.EnvironmentCommand> environment;
 
     public static Behavior<Void> create() {
@@ -29,7 +27,12 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
         this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
-        this.weatherSensor = getContext().spawn(WeatherSensor.create("3", "1"), "weatherSensor");
+
+        this.blinds = getContext().spawn(Blinds.create("4", "1"), "blinds");
+
+        this.weatherSensor = getContext().spawn(WeatherSensor.create(this.blinds, "3", "1"), "weatherSensor");
+
+
         this.environment = getContext().spawn(Environment.create(this.weatherSensor), "Environment");
         ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.environment), "UI");
 
