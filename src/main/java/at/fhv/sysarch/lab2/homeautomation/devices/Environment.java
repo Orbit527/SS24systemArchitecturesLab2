@@ -52,7 +52,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         super(context);
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
-        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(50));
+        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(5));
         this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
         this.weatherSensor = weatherSensor;
     }
@@ -77,8 +77,6 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeWeather(WeatherConditionsChanger w) {
-        System.out.println(w.isSunny + " CH");
-        System.out.println(w.isSunny.isPresent() + " DH");
         // randomly changes weather
         Weather[] weathers = Weather.values();
         int i;
