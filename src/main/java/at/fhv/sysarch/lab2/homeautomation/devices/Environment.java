@@ -39,7 +39,6 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     private final TimerScheduler<EnvironmentCommand> weatherTimeScheduler;
 
     // TODO: Provide the means for manually setting the temperature
-    // TODO: Provide the means for manually setting the weather
 
 
     private ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor;
@@ -53,8 +52,8 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         super(context);
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
-        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(5));
-        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.of(isSunny)), Duration.ofSeconds(3)); //TODO extend duration
+        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(50));
+        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
         this.weatherSensor = weatherSensor;
     }
 
@@ -78,15 +77,16 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeWeather(WeatherConditionsChanger w) {
-        // TODO: Proccess w input correctly
         System.out.println(w.isSunny + " CH");
+        System.out.println(w.isSunny.isPresent() + " DH");
         // randomly changes weather
         Weather[] weathers = Weather.values();
         int i;
         do {
             i = (int) (Math.random() * (0 + weathers.length));
         } while (weathers[i] == isSunny);
-        isSunny = weathers[i];
+        // sets either the w or the random weather value
+        isSunny = w.isSunny.orElse(weathers[i]);
         getContext().getLog().info("Environment Change Sun to {}", isSunny);
 
         // TODO: Handling of weather change. Are sensors notified or do they read the weather information?
