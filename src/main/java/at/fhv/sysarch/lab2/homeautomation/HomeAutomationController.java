@@ -26,14 +26,14 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         super(context);
         // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
-        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
 
         this.blinds = getContext().spawn(Blinds.create("4", "1"), "blinds");
 
+        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
         this.weatherSensor = getContext().spawn(WeatherSensor.create(this.blinds, "3", "1"), "weatherSensor");
 
 
-        this.environment = getContext().spawn(Environment.create(this.weatherSensor), "Environment");
+        this.environment = getContext().spawn(Environment.create(this.tempSensor, this.weatherSensor), "Environment");
         ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.environment), "UI");
 
         getContext().getLog().info("HomeAutomation Application started");

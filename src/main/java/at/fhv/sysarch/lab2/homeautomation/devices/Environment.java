@@ -44,17 +44,20 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
 
     private ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor;
 
+    private ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor;
 
-    public static Behavior<EnvironmentCommand> create(ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor){
-        return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new Environment(context, timers, timers, weatherSensor)));
+
+    public static Behavior<EnvironmentCommand> create(ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor, ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor){
+        return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new Environment(context, timers, timers, temperatureSensor, weatherSensor)));
     }
 
-    private Environment(ActorContext<EnvironmentCommand> context,TimerScheduler<EnvironmentCommand> tempTimer, TimerScheduler<EnvironmentCommand> weatherTimer, ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor) {
+    private Environment(ActorContext<EnvironmentCommand> context,TimerScheduler<EnvironmentCommand> tempTimer, TimerScheduler<EnvironmentCommand> weatherTimer, ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor,ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor) {
         super(context);
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
         this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(Optional.ofNullable((null))), Duration.ofSeconds(2));
         this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
+        this.temperatureSensor = temperatureSensor;
         this.weatherSensor = weatherSensor;
     }
 
@@ -77,6 +80,9 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         getContext().getLog().info("Environment received {}", temperature);
 
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
+        //TODO: change to Request Response
+        this.temperatureSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(temperature)));
+
         return this;
     }
 
@@ -92,7 +98,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         getContext().getLog().info("Environment Change Sun to {}", isSunny);
 
         // TODO: Handling of weather change. Are sensors notified or do they read the weather information?
-
+        //TODO: change to Request Response
         this.weatherSensor.tell(new WeatherSensor.ReadWeather(isSunny));
 
         return this;
