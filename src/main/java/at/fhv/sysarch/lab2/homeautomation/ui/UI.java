@@ -66,6 +66,9 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("e") && command[1].equals("w")) {
                 this.environment.tell(new Environment.WeatherConditionsChanger(Optional.of(Environment.Weather.valueOf(command[2]))));
             }
+            if(command[0].equals("e") && command[1].equals("t")) {
+                this.environment.tell(new Environment.TemperatureChanger(Optional.of(Double.valueOf(command[2]))));
+            }
                 // TODO: process Input
         }
         getContext().getLog().info("UI done");

@@ -21,7 +21,8 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     public interface EnvironmentCommand {}
 
     public static final class TemperatureChanger implements EnvironmentCommand {
-
+        final Optional<Double> temperature;
+        public TemperatureChanger(Optional<Double> temperature) {this.temperature = temperature;}
     }
 
     public static final class WeatherConditionsChanger implements EnvironmentCommand {
@@ -52,7 +53,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         super(context);
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
-        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(), Duration.ofSeconds(5));
+        this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(Optional.ofNullable((null))), Duration.ofSeconds(2));
         this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
         this.weatherSensor = weatherSensor;
     }
@@ -67,9 +68,12 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     }
 
     private Behavior<EnvironmentCommand> onChangeTemperature(TemperatureChanger t) {
-        System.out.println(t + " AH");
-
-        this.temperature += -2 + (float)(Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
+        if (t.temperature.isPresent()) {
+            this.temperature = t.temperature.get();
+        }
+        else {
+            this.temperature += -2 + (float) (Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
+        }
         getContext().getLog().info("Environment received {}", temperature);
 
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
