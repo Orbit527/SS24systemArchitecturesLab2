@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
 import at.fhv.sysarch.lab2.homeautomation.devices.Environment;
+import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
 import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
 
 import java.util.Optional;
@@ -19,18 +20,20 @@ public class UI extends AbstractBehavior<Void> {
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<Environment.EnvironmentCommand> environment;
+    private ActorRef<MediaStation.MediaStationCommand> mediaStation;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, environment));
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, environment, mediaStation));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
         this.environment = environment;
+        this.mediaStation = mediaStation;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -68,6 +71,9 @@ public class UI extends AbstractBehavior<Void> {
             }
             if(command[0].equals("e") && command[1].equals("t")) {
                 this.environment.tell(new Environment.TemperatureChanger(Optional.of(Double.valueOf(command[2]))));
+            }
+            if(command[0].equals("m")) {
+                this.mediaStation.tell(new MediaStation.test("Hallo"));
             }
                 // TODO: process Input
         }
