@@ -60,24 +60,34 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     public Receive<AirConditionCommand> createReceive() {
         return newReceiveBuilder()
                 .onMessage(EnrichedTemperature.class, this::onReadTemperature)
-                .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
+                .onMessage(PowerAirCondition.class, this::onPowerAirCondition)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
     private Behavior<AirConditionCommand> onReadTemperature(EnrichedTemperature r) {
         getContext().getLog().info("Aircondition reading {}", r.value.get());
-        // TODO: process temperature
-        if(r.value.get() >= 15) {
-            getContext().getLog().info("Aircondition actived");
-            this.active = true;
-        }
-        else {
-            getContext().getLog().info("Aircondition deactived");
-            this.active =  false;
+
+        if(this.poweredOn == true) {
+            if (r.value.get() >= 15 && this.active == false) {
+                getContext().getLog().info("Aircondition actived");
+                this.active = true;
+            } else if (r.value.get() < 15 && this.active == true) {
+                getContext().getLog().info("Aircondition deactived");
+                this.active = false;
+            }
         }
 
         return Behaviors.same();
+    }
+
+    private Behavior<AirConditionCommand> onPowerAirCondition(PowerAirCondition r) {
+        boolean value = r.value.orElse(false);
+        if (value) {
+            return onPowerAirConditionOn(r);
+        } else {
+            return onPowerAirConditionOff(r);
+        }
     }
 
     private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirCondition r) {
