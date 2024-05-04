@@ -9,33 +9,26 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
 import java.util.Optional;
-import java.util.concurrent.Executors;
 
 public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.TemperatureCommand> {
 
     public interface TemperatureCommand {}
 
 
+    public static final class RequestTemperature implements TemperatureCommand {
 
+        public RequestTemperature() {
 
-    public static final class ReadTemperature implements TemperatureCommand {
-        final Optional<Double> value;
-
-        public ReadTemperature(Optional<Double> value) {
-            this.value = value;
         }
     }
 
-    public static final class GetReadTemperature implements TemperatureCommand {
+    public static final class ResponseTemperature implements TemperatureCommand {
         final Optional<Double> value;
 
-        public GetReadTemperature(Optional<Double> value) {
+        public ResponseTemperature(Optional<Double> value) {
             this.value = value;
         }
     }
-
-
-
 
     public static Behavior<TemperatureCommand> create(ActorRef<Environment.EnvironmentCommand> environment, ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
         return Behaviors.setup(context -> new TemperatureSensor(context, environment, airCondition, groupId, deviceId));
@@ -60,29 +53,25 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     @Override
     public Receive<TemperatureCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(ReadTemperature.class, this::onReadTemperature)
-                .onMessage(GetReadTemperature.class, this::onGetTemperature)
+                .onMessage(RequestTemperature.class, this::onRequestTemperature)
+                .onMessage(ResponseTemperature.class, this::onResponseTemperature)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
 
 
-    private Behavior<TemperatureCommand> onReadTemperature(ReadTemperature r) {
+    private Behavior<TemperatureCommand> onRequestTemperature(RequestTemperature r) {
 
-
-        environment.tell(new Environment.Request("ABCD123", this.getContext().getSelf()));
-
-        //this.airCondition.tell(new AirCondition.EnrichedTemperature(r.value, Optional.of("Celsius")));
+        environment.tell(new Environment.Request("TemperatureSensor request from Environment", this.getContext().getSelf()));
         return this;
     }
 
-    private Behavior<TemperatureCommand> onGetTemperature(GetReadTemperature r) {
+    private Behavior<TemperatureCommand> onResponseTemperature(ResponseTemperature r) {
 
-        getContext().getLog().info("TemperatureSensor received from Env {}", r.value.get());
+        getContext().getLog().info("TemperatureSensor received from Environment {}", r.value.get());
 
-        getContext().getLog().info("TEST!!!!");
+        //send received Temp to AC
         this.airCondition.tell(new AirCondition.EnrichedTemperature(r.value, Optional.of("Celsius")));
-
 
         return this;
     }

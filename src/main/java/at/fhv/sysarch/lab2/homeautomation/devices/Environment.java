@@ -7,7 +7,6 @@ import akka.actor.typed.javadsl.*;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.Random;
 
 public class Environment extends AbstractBehavior<Environment.EnvironmentCommand> {
 
@@ -51,15 +50,6 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         }
     }
 
-    public static class Response implements EnvironmentCommand{
-        public final String result;
-
-        public Response(String result) {
-            this.result = result;
-        }
-    }
-
-
     public static Behavior<EnvironmentCommand> create(){
         return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new Environment(context, timers, timers)));
     }
@@ -84,8 +74,8 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
 
 
     private Behavior<EnvironmentCommand> onRequest(Request request) {
-        // ... process request ...
-        request.replyTo.tell(new TemperatureSensor.GetReadTemperature(Optional.of(this.temperature)));
+
+        request.replyTo.tell(new TemperatureSensor.ResponseTemperature(Optional.of(this.temperature)));
 
         getContext().getLog().info(request.query);
 
