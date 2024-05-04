@@ -41,24 +41,35 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
 
     // TODO: Provide the means for manually setting the temperature
 
+    public static class Request implements EnvironmentCommand{
+        public final String query;
+        public final ActorRef<TemperatureSensor.TemperatureCommand> replyTo;
 
-    private ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor;
-
-    private ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor;
-
-
-    public static Behavior<EnvironmentCommand> create(ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor, ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor){
-        return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new Environment(context, timers, timers, temperatureSensor, weatherSensor)));
+        public Request(String query, ActorRef<TemperatureSensor.TemperatureCommand> replyTo) {
+            this.query = query;
+            this.replyTo = replyTo;
+        }
     }
 
-    private Environment(ActorContext<EnvironmentCommand> context,TimerScheduler<EnvironmentCommand> tempTimer, TimerScheduler<EnvironmentCommand> weatherTimer, ActorRef<TemperatureSensor.TemperatureCommand> temperatureSensor,ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor) {
+    public static class Response implements EnvironmentCommand{
+        public final String result;
+
+        public Response(String result) {
+            this.result = result;
+        }
+    }
+
+
+    public static Behavior<EnvironmentCommand> create(){
+        return Behaviors.setup(context ->  Behaviors.withTimers(timers -> new Environment(context, timers, timers)));
+    }
+
+    private Environment(ActorContext<EnvironmentCommand> context,TimerScheduler<EnvironmentCommand> tempTimer, TimerScheduler<EnvironmentCommand> weatherTimer) {
         super(context);
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
         this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(Optional.ofNullable((null))), Duration.ofSeconds(2));
         this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
-        this.temperatureSensor = temperatureSensor;
-        this.weatherSensor = weatherSensor;
     }
 
     @Override
@@ -66,9 +77,21 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         return newReceiveBuilder()
                 .onMessage(TemperatureChanger.class, this::onChangeTemperature)
                 .onMessage(WeatherConditionsChanger.class, this::onChangeWeather)
+                .onMessage(Request.class, this::onRequest)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
+
+
+    private Behavior<EnvironmentCommand> onRequest(Request request) {
+        // ... process request ...
+        request.replyTo.tell(new TemperatureSensor.GetReadTemperature(Optional.of(this.temperature)));
+
+        getContext().getLog().info(request.query);
+
+        return Behaviors.same();
+    }
+
 
     private Behavior<EnvironmentCommand> onChangeTemperature(TemperatureChanger t) {
         if (t.temperature.isPresent()) {
@@ -81,7 +104,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
 
         // TODO: Handling of temperature change. Are sensors notified or do they read the temperature?
         //TODO: change to Request Response
-        this.temperatureSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(temperature)));
+        //this.temperatureSensor.tell(new TemperatureSensor.ReadTemperature(Optional.of(temperature)));
 
         return this;
     }
@@ -99,7 +122,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
 
         // TODO: Handling of weather change. Are sensors notified or do they read the weather information?
         //TODO: change to Request Response
-        this.weatherSensor.tell(new WeatherSensor.ReadWeather(isSunny));
+        //this.weatherSensor.tell(new WeatherSensor.ReadWeather(isSunny));
 
         return this;
     }

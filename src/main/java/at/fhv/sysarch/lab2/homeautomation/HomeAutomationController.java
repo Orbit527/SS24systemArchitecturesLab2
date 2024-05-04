@@ -31,11 +31,13 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.blinds = getContext().spawn(Blinds.create("4", "1"), "blinds");
         this.mediaStation = getContext().spawn(MediaStation.create("5", "1"), "mediaStation");
 
-        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.airCondition, "1", "1"), "temperatureSensor");
+        this.environment = getContext().spawn(Environment.create(), "Environment");
+
+        this.tempSensor = getContext().spawn(TemperatureSensor.create(this.environment, this.airCondition, "1", "1"), "temperatureSensor");
         this.weatherSensor = getContext().spawn(WeatherSensor.create(this.blinds, "3", "1"), "weatherSensor");
 
 
-        this.environment = getContext().spawn(Environment.create(this.tempSensor, this.weatherSensor), "Environment");
+
         ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.environment, this.mediaStation), "UI");
 
         getContext().getLog().info("HomeAutomation Application started");
