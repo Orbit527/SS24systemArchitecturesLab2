@@ -15,7 +15,6 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     public static final class RequestTemperature implements TemperatureCommand {
 
         public RequestTemperature() {
-
         }
     }
 
@@ -60,7 +59,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
 
     private Behavior<TemperatureCommand> onRequestTemperature(RequestTemperature r) {
 
-        environment.tell(new Environment.Request("TemperatureSensor request from Environment", this.getContext().getSelf()));
+        environment.tell(new Environment.TemperatureSensorRequest("TemperatureSensor request from Environment", this.getContext().getSelf()));
         return this;
     }
 
