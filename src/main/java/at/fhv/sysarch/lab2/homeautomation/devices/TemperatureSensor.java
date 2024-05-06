@@ -3,17 +3,14 @@ package at.fhv.sysarch.lab2.homeautomation.devices;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
-import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.*;
 
+import java.time.Duration;
 import java.util.Optional;
 
 public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.TemperatureCommand> {
 
     public interface TemperatureCommand {}
-
 
     public static final class RequestTemperature implements TemperatureCommand {
 
@@ -31,7 +28,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     }
 
     public static Behavior<TemperatureCommand> create(ActorRef<Environment.EnvironmentCommand> environment, ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
-        return Behaviors.setup(context -> new TemperatureSensor(context, environment, airCondition, groupId, deviceId));
+        return Behaviors.setup(context -> Behaviors.withTimers(timers -> new TemperatureSensor(context, timers, environment, airCondition, groupId, deviceId)));
     }
 
     private final String groupId;
@@ -40,8 +37,9 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
 
 
-    public TemperatureSensor(ActorContext<TemperatureCommand> context, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
+    public TemperatureSensor(ActorContext<TemperatureCommand> context, TimerScheduler<TemperatureCommand> tempTimer,  ActorRef<Environment.EnvironmentCommand> environment, ActorRef<AirCondition.AirConditionCommand> airCondition, String groupId, String deviceId) {
         super(context);
+        tempTimer.startTimerAtFixedRate(new RequestTemperature(), Duration.ofSeconds(5));
         this.environment = environment;
         this.airCondition = airCondition;
         this.groupId = groupId;
