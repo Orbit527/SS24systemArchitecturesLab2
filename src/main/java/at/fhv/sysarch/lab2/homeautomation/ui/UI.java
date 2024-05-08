@@ -72,9 +72,20 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("e") && command[1].equals("t")) {
                 this.environment.tell(new Environment.TemperatureChanger(Optional.of(Double.valueOf(command[2]))));
             }
-            if(command[0].equals("m")) {
-                this.mediaStation.tell(new MediaStation.test("Hallo"));
+            if(command[0].equals("m") && command[1].equals("play")) {
+                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie());
             }
+            if(command[0].equals("m") && command[1].equals("stop")) {
+                this.mediaStation.tell(new MediaStation.MediaStationStopMovie());
+            }
+
+            /*
+            if(command[0].equals("m")) {
+                this.mediaStation.tell(new MediaStation.PowerMediaStation(Optional.of(Boolean.valueOf(command[1]))));
+            }
+
+             */
+
                 // TODO: process Input
         }
         getContext().getLog().info("UI done");

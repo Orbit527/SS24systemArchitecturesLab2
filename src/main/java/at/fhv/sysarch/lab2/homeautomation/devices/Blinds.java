@@ -25,6 +25,15 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
 
     }
 
+    public static final class setMediaStationStatus implements BlindsCommand {
+
+        Boolean mediaStationPlaying;
+        public setMediaStationStatus(Boolean mediaStationPlaying) {
+            this.mediaStationPlaying = mediaStationPlaying;
+        }
+
+    }
+
     public static Behavior<BlindsCommand> create (String groupId, String deviceId) {
 
         return Behaviors.setup(context -> new Blinds(context, groupId, deviceId));
@@ -32,7 +41,9 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
 
     private String groupId;
     private String deviceId;
-    Boolean isClosed;
+
+    private Boolean mediaStationPlaying = false;
+    private Boolean isClosed;
 
     public Blinds(ActorContext<BlindsCommand> context, String groupId, String deviceId) {
         this(context);
@@ -46,6 +57,7 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     public Receive<BlindsCommand> createReceive() {
         return newReceiveBuilder()
                 .onMessage(setWeatherStatus.class, this::onReadBlindsStatus)
+                .onMessage(setMediaStationStatus.class, this::onMediaStationStatus)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
@@ -53,17 +65,34 @@ public class Blinds extends AbstractBehavior<Blinds.BlindsCommand> {
     private Behavior<BlindsCommand> onReadBlindsStatus(setWeatherStatus bs) {
         getContext().getLog().info("Blinds got: " + bs.weather);
 
-        //TODO: Logic, if Movie is running, then dont open Blinds
-        if (bs.weather == Environment.Weather.SUNNY) {
-           this.isClosed = true;
+        if (this.mediaStationPlaying == false) {
+            if (bs.weather == Environment.Weather.SUNNY) {
+                this.isClosed = true;
+            } else {
+                this.isClosed = false;
+            }
         } else {
-            this.isClosed = false;
+            this.isClosed = true;
         }
 
         getContext().getLog().info("Blinds are closed? " + this.isClosed);
 
         return this;
     }
+
+    private Behavior<BlindsCommand> onMediaStationStatus(setMediaStationStatus ms) {
+
+        getContext().getLog().info("Blinds reveiced from MediaStation: " + ms.mediaStationPlaying);
+        this.mediaStationPlaying = ms.mediaStationPlaying;
+        if (this.mediaStationPlaying == true) {
+            this.isClosed = true;
+        } else {
+            this.isClosed = false;
+        }
+
+        return this;
+    }
+
 
     private Blinds onPostStop() {
         getContext().getLog().info("BlindsSensor actor {}-{} stopped", groupId, deviceId);

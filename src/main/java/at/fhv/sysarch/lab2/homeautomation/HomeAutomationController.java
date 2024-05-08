@@ -31,7 +31,7 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
 
         this.blinds = getContext().spawn(Blinds.create("4", "1"), "blinds");
-        this.mediaStation = getContext().spawn(MediaStation.create("5", "1"), "mediaStation");
+        this.mediaStation = getContext().spawn(MediaStation.create(this.blinds, "5", "1"), "mediaStation");
 
         this.environment = getContext().spawn(Environment.create(), "Environment");
 

@@ -103,7 +103,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         else {
             this.temperature += -2 + (float) (Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         }
-        getContext().getLog().info("Environment received {}", temperature);
+        //getContext().getLog().info("Environment received {}", temperature);
 
         return this;
     }
