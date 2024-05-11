@@ -6,6 +6,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.*;
 
+import javax.naming.Context;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -56,6 +57,17 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static class QueryProductsCommand implements FridgeCommand {}
+
+    public static final class ConsumeProductCommand implements FridgeCommand {
+        final Optional<String> productName;
+
+        public ConsumeProductCommand(Optional<String> productName) {
+            this.productName = productName;
+        }
+    }
+
+
     private String groupId;
     private String deviceId;
 
@@ -80,7 +92,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
         products.add(new Product("Milk", 5, 5));
         products.add(new Product("Eggs", 5, 3));
-        getStoredProducts();
 
         getContext().getLog().info("Fridge started");
 
@@ -93,14 +104,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         products.add(product);
     }
 
-    // TODO: Add Method for Querying stored products - unfinished right meow -> make a proper UI call
-    public void getStoredProducts() {
-        int i = 0;
-        while (i < products.size()) {
-            System.out.println(products.get(i).getName());
-            i++;
-        }
-    }
+
     // TODO: Add Method for Querying history of orders
     // TODO: Add automatic ordering logic, if product runs out
 
@@ -109,9 +113,35 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         return newReceiveBuilder()
                 .onMessage(SpaceRequest.class, this::onSpaceRequest)
                 .onMessage(WeightRequest.class, this::onWeightRequest)
+                .onMessage(QueryProductsCommand.class, this::onQueryProductsRequest)
+                .onMessage(ConsumeProductCommand.class, this::onConsumeProductCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onConsumeProductCommand(ConsumeProductCommand request) {
+        int i = 0;
+        while( i < products.size()) {
+            if (products.get(i).getName().equals(request.productName.get())) {
+                getContext().getLog().info("Removed " + products.get(i).name + " from fridge");
+                products.remove(i);
+            }
+
+            i++;
+        }
+        return Behaviors.same();
+    }
+
+    private Behavior<FridgeCommand> onQueryProductsRequest(QueryProductsCommand request) {
+        int i = 1;
+        String output = products.size() > 0 ? products.get(0).getName() : "";
+        while (i < products.size()) {
+            output = output + ", " + products.get(i).getName();
+            i++;
+        }
+        getContext().getLog().info(output);
+        return Behaviors.same();
     }
 
     private Behavior<FridgeCommand> onSpaceRequest(SpaceRequest request) {

@@ -39,7 +39,7 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
         this.deviceId = deviceId;
         this.fridge = fridge;
         this.fridgeTimeScheduler = fridgeTimeScheduler;
-        fridgeTimeScheduler.startTimerAtFixedRate(new RequestProducts(), Duration.ofSeconds(2));
+        fridgeTimeScheduler.startTimerAtFixedRate(new RequestProducts(), Duration.ofSeconds(5));
 
         getContext().getLog().info("Weight Sensor started");
     }
@@ -67,7 +67,7 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
             i++;
         }
         productWeight = temp;
-        getContext().getLog().info("Products in fridge weigh " + productWeight);
+        getContext().getLog().info("Products in fridge weigh " + productWeight + " kg");
         return Behaviors.same();
     }
 

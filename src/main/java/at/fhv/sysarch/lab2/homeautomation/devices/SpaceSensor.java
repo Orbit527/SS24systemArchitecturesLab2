@@ -39,7 +39,7 @@ public class SpaceSensor extends AbstractBehavior<SpaceSensor.SpaceSensorCommand
         this.deviceId = deviceId;
         this.fridge = fridge;
         this.fridgeTimeScheduler = fridgeTimeScheduler;
-        fridgeTimeScheduler.startTimerAtFixedRate(new RequestProducts(), Duration.ofSeconds(2));
+        fridgeTimeScheduler.startTimerAtFixedRate(new RequestProducts(), Duration.ofSeconds(5));
 
         getContext().getLog().info("Space Sensor started");
     }

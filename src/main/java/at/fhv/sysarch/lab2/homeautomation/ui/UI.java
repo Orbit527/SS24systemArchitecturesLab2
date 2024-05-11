@@ -7,10 +7,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import at.fhv.sysarch.lab2.homeautomation.devices.AirCondition;
-import at.fhv.sysarch.lab2.homeautomation.devices.Environment;
-import at.fhv.sysarch.lab2.homeautomation.devices.MediaStation;
-import at.fhv.sysarch.lab2.homeautomation.devices.TemperatureSensor;
+import at.fhv.sysarch.lab2.homeautomation.devices.*;
 
 import java.util.Optional;
 import java.util.Scanner;
@@ -21,12 +18,14 @@ public class UI extends AbstractBehavior<Void> {
     private ActorRef<AirCondition.AirConditionCommand> airCondition;
     private ActorRef<Environment.EnvironmentCommand> environment;
     private ActorRef<MediaStation.MediaStationCommand> mediaStation;
+    private ActorRef<Fridge.FridgeCommand> fridge;
 
-    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation) {
-        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, environment, mediaStation));
+
+    public static Behavior<Void> create(ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
+        return Behaviors.setup(context -> new UI(context, tempSensor, airCondition, environment, mediaStation, fridge));
     }
 
-    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation) {
+    private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
         // TODO: implement actor and behavior as needed
         // TODO: move UI initialization to appropriate place
@@ -34,6 +33,7 @@ public class UI extends AbstractBehavior<Void> {
         this.tempSensor = tempSensor;
         this.environment = environment;
         this.mediaStation = mediaStation;
+        this.fridge = fridge;
         new Thread(() -> { this.runCommandLine(); }).start();
 
         getContext().getLog().info("UI started");
@@ -77,6 +77,14 @@ public class UI extends AbstractBehavior<Void> {
             }
             if(command[0].equals("m") && command[1].equals("stop")) {
                 this.mediaStation.tell(new MediaStation.MediaStationStopMovie());
+            }
+            // command: fridge query products
+            if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("products")) {
+                this.fridge.tell(new Fridge.QueryProductsCommand());
+            }
+            // command: fridge consume productName
+            if(command[0].equals("fridge") && command[1].equals("consume")) {
+                this.fridge.tell(new Fridge.ConsumeProductCommand(Optional.of(String.valueOf(command[2]))));
             }
 
             /*
