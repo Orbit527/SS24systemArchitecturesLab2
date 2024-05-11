@@ -1,5 +1,6 @@
 package at.fhv.sysarch.lab2.homeautomation.devices;
 
+import akka.actor.Actor;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;
@@ -34,18 +35,33 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         return Behaviors.setup(context -> new Fridge(context, groupId, deviceId));
     }
 
+    public static class SpaceRequest implements FridgeCommand {
+        public final String query;
+        public final ActorRef<SpaceSensor.SpaceSensorCommand> replyTo;
+
+        public SpaceRequest(String query, ActorRef<SpaceSensor.SpaceSensorCommand> replyTo) {
+            this.query = query;
+            this.replyTo = replyTo;
+        }
+    }
+
     private String groupId;
     private String deviceId;
 
     // TODO:
+
+    private ActorRef<SpaceSensor.SpaceSensorCommand> spaceSensor;
+
     private int maxStorableProducts;
     private int maxWeightLoad;
-    private ArrayList<Product> products = new ArrayList<>();
+    private static ArrayList<Product> products = new ArrayList<>();
 
     private Fridge(ActorContext<FridgeCommand> context, String groupId, String deviceId) {
         super(context);
         this.groupId = groupId;
         this.deviceId = deviceId;
+
+        this.spaceSensor = getContext().spawn(SpaceSensor.create("7", "1", getContext().getSelf()), "SpaceSensor");
 
         products.add(new Product("Milk", 5, 5));
         products.add(new Product("Eggs", 5, 5));
@@ -76,8 +92,15 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     @Override
     public Receive<FridgeCommand> createReceive() {
         return newReceiveBuilder()
+                .onMessage(SpaceRequest.class, this::onSpaceRequest)
+
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onSpaceRequest(SpaceRequest request) {
+        request.replyTo.tell(new SpaceSensor.ProductsResponse(products));
+        return Behaviors.same();
     }
 
     private Fridge onPostStop() {
