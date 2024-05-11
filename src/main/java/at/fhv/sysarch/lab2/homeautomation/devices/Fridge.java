@@ -28,6 +28,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         public String getName() {
             return name;
         }
+        public double getWeight() {return weight;}
     }
     // Product Class end
 
@@ -45,12 +46,24 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static class WeightRequest implements FridgeCommand {
+        public final String query;
+        public final ActorRef<WeightSensor.WeightSensorCommand> replyTo;
+
+        public WeightRequest(String query, ActorRef<WeightSensor.WeightSensorCommand> replyTo) {
+            this.query = query;
+            this.replyTo = replyTo;
+        }
+    }
+
     private String groupId;
     private String deviceId;
 
     // TODO:
 
     private ActorRef<SpaceSensor.SpaceSensorCommand> spaceSensor;
+    private ActorRef<WeightSensor.WeightSensorCommand> weightSensor;
+
 
     private int maxStorableProducts;
     private int maxWeightLoad;
@@ -62,9 +75,11 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         this.deviceId = deviceId;
 
         this.spaceSensor = getContext().spawn(SpaceSensor.create("7", "1", getContext().getSelf()), "SpaceSensor");
+        this.weightSensor = getContext().spawn(WeightSensor.create("8", "1", getContext().getSelf()), "WeightSensor");
+
 
         products.add(new Product("Milk", 5, 5));
-        products.add(new Product("Eggs", 5, 5));
+        products.add(new Product("Eggs", 5, 3));
         getStoredProducts();
 
         getContext().getLog().info("Fridge started");
@@ -93,6 +108,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     public Receive<FridgeCommand> createReceive() {
         return newReceiveBuilder()
                 .onMessage(SpaceRequest.class, this::onSpaceRequest)
+                .onMessage(WeightRequest.class, this::onWeightRequest)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
@@ -100,6 +116,11 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     private Behavior<FridgeCommand> onSpaceRequest(SpaceRequest request) {
         request.replyTo.tell(new SpaceSensor.ProductsResponse(products));
+        return Behaviors.same();
+    }
+
+    private Behavior<FridgeCommand> onWeightRequest(WeightRequest request) {
+        request.replyTo.tell(new WeightSensor.ProductsResponse(products));
         return Behaviors.same();
     }
 
