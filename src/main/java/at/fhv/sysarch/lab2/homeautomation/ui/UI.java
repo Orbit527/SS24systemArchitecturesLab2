@@ -85,9 +85,15 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("products")) {
                 this.fridge.tell(new Fridge.QueryProductsCommand());
             }
-            // command: fridge consume productName
+            // command structure: fridge consume productName
+            // command example: fridge consume Milk
             if(command[0].equals("fridge") && command[1].equals("consume")) {
                 this.fridge.tell(new Fridge.ConsumeProductCommand(Optional.of(String.valueOf(command[2]))));
+            }
+            // command structure: fridge order productName productPrice productWeight
+            // command example: fridge order Bacon 15.99 0.8
+            if(command[0].equals("fridge") && command[1].equals("order")) {
+                this.fridge.tell(new Fridge.OrderProductCommand(Optional.of(String.valueOf(command[2])), Optional.of(Double.valueOf(command[3])), Optional.of(Double.valueOf(command[4]))));
             }
 
 

@@ -33,8 +33,8 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     }
     // Product Class end
 
-    public static Behavior<FridgeCommand> create(String groupId, String deviceId){
-        return Behaviors.setup(context -> new Fridge(context, groupId, deviceId));
+    public static Behavior<FridgeCommand> create(String groupId, String deviceId, int maxStorableProducts, int maxWeightLoad){
+        return Behaviors.setup(context -> new Fridge(context, groupId, deviceId, maxStorableProducts, maxWeightLoad));
     }
 
     public static class SpaceRequest implements FridgeCommand {
@@ -67,11 +67,22 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static final class OrderProductCommand implements FridgeCommand {
+        final Optional<String> productName;
+        final Optional<Double> productPrice;
+        final Optional<Double> productWeigth;
+
+        public OrderProductCommand(Optional<String> productName, Optional<Double> productPrice, Optional<Double> productWeigth) {
+            this.productName = productName;
+            this.productPrice = productPrice;
+            this.productWeigth = productWeigth;
+        }
+    }
+
 
     private String groupId;
     private String deviceId;
 
-    // TODO:
 
     private ActorRef<SpaceSensor.SpaceSensorCommand> spaceSensor;
     private ActorRef<WeightSensor.WeightSensorCommand> weightSensor;
@@ -79,12 +90,15 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     private int maxStorableProducts;
     private int maxWeightLoad;
-    private static ArrayList<Product> products = new ArrayList<>();
+    private ArrayList<Product> products = new ArrayList<>();
 
-    private Fridge(ActorContext<FridgeCommand> context, String groupId, String deviceId) {
+    private Fridge(ActorContext<FridgeCommand> context, String groupId, String deviceId, int maxStorableProducts, int maxWeightLoad) {
         super(context);
         this.groupId = groupId;
         this.deviceId = deviceId;
+
+        this.maxStorableProducts = maxStorableProducts;
+        this.maxWeightLoad = maxWeightLoad;
 
         this.spaceSensor = getContext().spawn(SpaceSensor.create("7", "1", getContext().getSelf()), "SpaceSensor");
         this.weightSensor = getContext().spawn(WeightSensor.create("8", "1", getContext().getSelf()), "WeightSensor");
@@ -98,7 +112,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     }
 
-    // TODO: Add Method for consuming Products
     // TODO: Add Method for ordering Products -> returns receipt
     public void addProduct(Product product) {
         products.add(product);
@@ -115,9 +128,20 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(WeightRequest.class, this::onWeightRequest)
                 .onMessage(QueryProductsCommand.class, this::onQueryProductsRequest)
                 .onMessage(ConsumeProductCommand.class, this::onConsumeProductCommand)
+                .onMessage(OrderProductCommand.class, this::onOrderProductCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onOrderProductCommand(OrderProductCommand request) {
+        Product product = new Product(request.productName.get(), request.productPrice.get(), request.productWeigth.get());
+
+        System.out.println(product.getName());
+        //TODO: Create Order Processor, which handles ordering stuff
+        ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor = getContext().spawn(OrderProcessor.create("9", "1", product, getContext().getSelf(), maxStorableProducts, maxWeightLoad, spaceSensor, weightSensor), "OrderProcessor");
+
+        return Behaviors.same();
     }
 
     private Behavior<FridgeCommand> onConsumeProductCommand(ConsumeProductCommand request) {
