@@ -76,6 +76,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         if(storable == true && loadable == true) {
             //TODO: Make it order things
             System.out.println("MADE IT");
+            fridge.tell(new Fridge.ReceiptResponse(product));
         }
         if(loadable == false) {
             getContext().getLog().info("Fridge has no Space for this product");
@@ -91,6 +92,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         if(storable == true && loadable == true) {
             //TODO: Make it order things
             System.out.println("MADE IT");
+            fridge.tell(new Fridge.ReceiptResponse(product));
         }
         if(storable == false) {
             getContext().getLog().info("Fridge has no Space for this product");

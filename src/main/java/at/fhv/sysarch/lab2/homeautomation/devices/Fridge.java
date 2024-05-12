@@ -31,6 +31,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             return name;
         }
         public double getWeight() {return weight;}
+        public double getPrice() {return price;}
     }
     // Product Class end
 
@@ -80,6 +81,23 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static class ReceiptResponse implements FridgeCommand {
+        final Product product;
+        public ReceiptResponse(Product product) {this.product = product;}
+    }
+
+    public static class SubscribeProductCommand implements FridgeCommand {
+        final Optional<String> productName;
+        final Optional<Double> productPrice;
+        final Optional<Double> productWeigth;
+
+        public SubscribeProductCommand(Optional<String> productName, Optional<Double> productPrice, Optional<Double> productWeigth) {
+            this.productName = productName;
+            this.productPrice = productPrice;
+            this.productWeigth = productWeigth;
+        }
+    }
+
 
     private String groupId;
     private String deviceId;
@@ -93,6 +111,8 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     private int maxWeightLoad;
     private ArrayList<Product> products = new ArrayList<>();
 
+    private ArrayList<Product> subscribedProducts = new ArrayList<>();
+
     private Fridge(ActorContext<FridgeCommand> context, String groupId, String deviceId, int maxStorableProducts, int maxWeightLoad) {
         super(context);
         this.groupId = groupId;
@@ -104,23 +124,12 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         this.spaceSensor = getContext().spawn(SpaceSensor.create("7", "1", getContext().getSelf()), "SpaceSensor");
         this.weightSensor = getContext().spawn(WeightSensor.create("8", "1", getContext().getSelf()), "WeightSensor");
 
-
-        products.add(new Product("Milk", 5, 5));
-        products.add(new Product("Eggs", 5, 3));
-
         getContext().getLog().info("Fridge started");
 
 
     }
 
-    // TODO: Add Method for ordering Products -> returns receipt
-    public void addProduct(Product product) {
-        products.add(product);
-    }
-
-
     // TODO: Add Method for Querying history of orders
-    // TODO: Add automatic ordering logic, if product runs out
 
     @Override
     public Receive<FridgeCommand> createReceive() {
@@ -130,16 +139,31 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(QueryProductsCommand.class, this::onQueryProductsRequest)
                 .onMessage(ConsumeProductCommand.class, this::onConsumeProductCommand)
                 .onMessage(OrderProductCommand.class, this::onOrderProductCommand)
+                .onMessage(ReceiptResponse.class, this::onReceiptResponse)
+                .onMessage(SubscribeProductCommand.class, this::onSubscribeProductCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onSubscribeProductCommand(SubscribeProductCommand command) {
+        Product product = new Product(command.productName.get(), command.productPrice.get(), command.productWeigth.get());
+        subscribedProducts.add(product);
+        getContext().getLog().info(product.getName() + " added to subscription list");
+        getContext().getSelf().tell(new OrderProductCommand(command.productName, command.productPrice, command.productWeigth));
+        return Behaviors.same();
+    }
+
+    private Behavior<FridgeCommand> onReceiptResponse(ReceiptResponse response) {
+        products.add(response.product);
+        getContext().getLog().info(response.product.getWeight() + " kg of " + response.product.getName() + " ordered for " + response.product.getPrice());
+        return Behaviors.same();
     }
 
     private Behavior<FridgeCommand> onOrderProductCommand(OrderProductCommand request) {
         Product product = new Product(request.productName.get(), request.productPrice.get(), request.productWeigth.get());
 
         System.out.println(product.getName());
-        //TODO: Create Order Processor, which handles ordering stuff
         ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor = getContext().spawn(OrderProcessor.create("9", "1", product, getContext().getSelf(), maxStorableProducts, maxWeightLoad, spaceSensor, weightSensor), UUID.randomUUID().toString());
 
         return Behaviors.same();
@@ -147,10 +171,19 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     private Behavior<FridgeCommand> onConsumeProductCommand(ConsumeProductCommand request) {
         int i = 0;
+        int j = 0;
         while( i < products.size()) {
             if (products.get(i).getName().equals(request.productName.get())) {
+                Product product = products.get(i);
                 getContext().getLog().info("Removed " + products.get(i).name + " from fridge");
                 products.remove(i);
+                while(j < subscribedProducts.size()) {
+                    if((product.getName().equals(subscribedProducts.get(j).getName())) && (product.getPrice() == (subscribedProducts.get(j).getPrice())) && (product.getWeight() == (subscribedProducts.get(j).getWeight()))) {
+                        getContext().getSelf().tell(new OrderProductCommand(Optional.ofNullable(product.getName()), Optional.of(product.getPrice()), Optional.of(product.getWeight())));
+                    }
+                    j++;
+                }
+
             }
 
             i++;
