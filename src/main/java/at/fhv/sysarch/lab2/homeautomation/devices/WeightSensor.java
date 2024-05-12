@@ -25,6 +25,15 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
         }
     }
 
+    public static class CurrentWeightRequest implements WeightSensorCommand {
+        public final String query;
+        public final ActorRef<OrderProcessor.OrderProcessorCommand> replyTo;
+        public CurrentWeightRequest(String query, ActorRef<OrderProcessor.OrderProcessorCommand> replyTo) {
+            this.query = query;
+            this.replyTo = replyTo;
+        }
+    }
+
     private String groupId;
     private String deviceId;
     private ActorRef<Fridge.FridgeCommand> fridge;
@@ -49,9 +58,16 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
         return newReceiveBuilder()
                 .onMessage(ProductsResponse.class, this::onProductsResponse)
                 .onMessage(RequestProducts.class, this::onRequestProducts)
+                .onMessage(CurrentWeightRequest.class, this::onCurrentWeightRequest)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<WeightSensorCommand> onCurrentWeightRequest(CurrentWeightRequest request) {
+        System.out.println("WEIGHT TESTING");
+        request.replyTo.tell(new OrderProcessor.CurrentWeightResponse(productWeight));
+        return Behaviors.same();
     }
 
     private Behavior<WeightSensorCommand> onRequestProducts(RequestProducts response) {

@@ -25,6 +25,15 @@ public class SpaceSensor extends AbstractBehavior<SpaceSensor.SpaceSensorCommand
         }
     }
 
+    public static class CurrentSpaceRequest implements SpaceSensorCommand {
+        public final String query;
+        public final ActorRef<OrderProcessor.OrderProcessorCommand> replyTo;
+        public CurrentSpaceRequest(String query, ActorRef<OrderProcessor.OrderProcessorCommand> replyTo) {
+            this.query = query;
+            this.replyTo = replyTo;
+        }
+    }
+
     private String groupId;
     private String deviceId;
     private ActorRef<Fridge.FridgeCommand> fridge;
@@ -49,9 +58,15 @@ public class SpaceSensor extends AbstractBehavior<SpaceSensor.SpaceSensorCommand
         return newReceiveBuilder()
                 .onMessage(ProductsResponse.class, this::onProductsResponse)
                 .onMessage(RequestProducts.class, this::onRequestProducts)
+                .onMessage(CurrentSpaceRequest.class, this::onCurrentSpaceRequest)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<SpaceSensorCommand> onCurrentSpaceRequest (CurrentSpaceRequest request) {
+        request.replyTo.tell(new OrderProcessor.CurrentSpaceResponse(productAmount));
+        return Behaviors.same();
     }
 
     private Behavior<SpaceSensorCommand> onRequestProducts(RequestProducts response) {

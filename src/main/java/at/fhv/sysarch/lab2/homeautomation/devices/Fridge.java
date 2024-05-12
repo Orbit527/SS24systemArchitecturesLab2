@@ -10,6 +10,7 @@ import javax.naming.Context;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
@@ -139,7 +140,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
         System.out.println(product.getName());
         //TODO: Create Order Processor, which handles ordering stuff
-        ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor = getContext().spawn(OrderProcessor.create("9", "1", product, getContext().getSelf(), maxStorableProducts, maxWeightLoad, spaceSensor, weightSensor), "OrderProcessor");
+        ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor = getContext().spawn(OrderProcessor.create("9", "1", product, getContext().getSelf(), maxStorableProducts, maxWeightLoad, spaceSensor, weightSensor), UUID.randomUUID().toString());
 
         return Behaviors.same();
     }
