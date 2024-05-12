@@ -73,10 +73,13 @@ public class UI extends AbstractBehavior<Void> {
                 this.environment.tell(new Environment.TemperatureChanger(Optional.of(Double.valueOf(command[2]))));
             }
             if(command[0].equals("m") && command[1].equals("play")) {
-                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie());
+                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie(true));
             }
             if(command[0].equals("m") && command[1].equals("stop")) {
-                this.mediaStation.tell(new MediaStation.MediaStationStopMovie());
+                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie(false));
+            }
+            if((command[0].equals("m") && command[1].equals("true")) || (command[0].equals("m") && command[1].equals("false"))) {
+                this.mediaStation.tell(new MediaStation.PowerMediaStationOn(Boolean.valueOf(command[1])));
             }
             // command: fridge query products
             if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("products")) {
@@ -87,12 +90,6 @@ public class UI extends AbstractBehavior<Void> {
                 this.fridge.tell(new Fridge.ConsumeProductCommand(Optional.of(String.valueOf(command[2]))));
             }
 
-            /*
-            if(command[0].equals("m")) {
-                this.mediaStation.tell(new MediaStation.PowerMediaStation(Optional.of(Boolean.valueOf(command[1]))));
-            }
-
-             */
 
                 // TODO: process Input
         }

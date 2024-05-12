@@ -8,8 +8,6 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-import java.util.Optional;
-
 public class MediaStation extends AbstractBehavior<MediaStation.MediaStationCommand> {
 
     public interface MediaStationCommand {}
@@ -18,22 +16,18 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaStationComm
         super(context);
     }
 
-    public static final class PowerMediaStation implements MediaStationCommand {
-        final Optional<Boolean> value;
+    public static final class PowerMediaStationOn implements MediaStationCommand {
+        final boolean value;
 
-        public PowerMediaStation(Optional<Boolean> value) {
+        public PowerMediaStationOn(boolean value) {
             this.value = value;
         }
     }
 
     public static final class MediaStationPlayMovie implements  MediaStationCommand {
-        public MediaStationPlayMovie() {
-        }
-    }
-
-    public static final class MediaStationStopMovie implements  MediaStationCommand {
-
-        public MediaStationStopMovie() {
+        boolean play;
+        public MediaStationPlayMovie(boolean play) {
+            this.play = play;
         }
     }
 
@@ -59,9 +53,8 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaStationComm
     @Override
     public Receive<MediaStationCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(PowerMediaStation.class, this::onPowerMediaStation)
+                .onMessage(PowerMediaStationOn.class, this::onPowerMediaStationOn)
                 .onMessage(MediaStationPlayMovie.class, this::onMediaStationPlayMovie)
-                .onMessage(MediaStationStopMovie.class, this::onMediaStationStopMovie)
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
     }
@@ -69,8 +62,14 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaStationComm
     private Behavior<MediaStationCommand> onMediaStationPlayMovie(MediaStationPlayMovie val) {
         if (this.poweredOn == true) {
             this.moviePlaying = true;
-            this.blinds.tell(new Blinds.setMediaStationStatus(true));
-            getContext().getLog().info("Media Station now playing Movie!");
+            this.blinds.tell(new Blinds.setMediaStationStatus(val.play));
+
+            if (val.play == true) {
+                getContext().getLog().info("Media Station now playing Movie!");
+            } else {
+                getContext().getLog().info("Media Station stopped playing Movie!");
+            }
+
         } else {
             getContext().getLog().info("Media Station is not turned on!");
         }
@@ -78,59 +77,18 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaStationComm
         return this;
     }
 
-    private Behavior<MediaStationCommand> onMediaStationStopMovie(MediaStationStopMovie val) {
-        if (this.poweredOn == true) {
+    private Behavior<MediaStationCommand> onPowerMediaStationOn(PowerMediaStationOn p) {
+        getContext().getLog().info("Turning MediaStation to {}", p.value);
+
+        this.poweredOn = p.value;
+
+        if (this.poweredOn == false) {
             this.moviePlaying = false;
             this.blinds.tell(new Blinds.setMediaStationStatus(false));
-            getContext().getLog().info("Media Station now stopped Movie!");
-        } else {
-            getContext().getLog().info("Media Station is not turned on!");
         }
 
         return this;
     }
-
-    private Behavior<MediaStationCommand> onPowerMediaStation(PowerMediaStation r) {
-        boolean value = r.value.orElse(false);
-        if (value) {
-            return onPowerMediaStationOn(r);
-        } else {
-            return onPowerMediaStationOff(r);
-        }
-    }
-
-    private Behavior<MediaStationCommand> onPowerMediaStationOff(PowerMediaStation r) {
-        getContext().getLog().info("Turning MediaStation to {}", r.value);
-
-        if(r.value.get() == false) {
-            this.moviePlaying = false;
-            return this.powerOff();
-        }
-        return this;
-    }
-
-    private Behavior<MediaStationCommand> onPowerMediaStationOn(PowerMediaStation r) {
-        getContext().getLog().info("Turning MediaStation to {}", r.value);
-
-        if(r.value.get() == true) {
-            return Behaviors.receive(MediaStationCommand.class)
-
-                    .onMessage(PowerMediaStation.class, this::onPowerMediaStationOff)
-                    .onSignal(PostStop.class, signal -> onPostStop())
-                    .build();
-        }
-        return this;
-    }
-
-    private Behavior<MediaStationCommand> powerOff() {
-        this.poweredOn = false;
-        return Behaviors.receive(MediaStationCommand.class)
-                .onMessage(PowerMediaStation.class, this::onPowerMediaStationOn)
-                .onSignal(PostStop.class, signal -> onPostStop())
-                .build();
-    }
-
-
 
     private MediaStation onPostStop() {
         getContext().getLog().info("MediaStation actor {}-{} stopped", groupId, deviceId);
