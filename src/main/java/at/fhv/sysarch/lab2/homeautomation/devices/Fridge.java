@@ -177,13 +177,16 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 Product product = products.get(i);
                 getContext().getLog().info("Removed " + products.get(i).name + " from fridge");
                 products.remove(i);
+                spaceSensor.tell(new SpaceSensor.ProductsResponse(products));
+                weightSensor.tell(new WeightSensor.ProductsResponse(products));
                 while(j < subscribedProducts.size()) {
                     if((product.getName().equals(subscribedProducts.get(j).getName())) && (product.getPrice() == (subscribedProducts.get(j).getPrice())) && (product.getWeight() == (subscribedProducts.get(j).getWeight()))) {
                         getContext().getSelf().tell(new OrderProductCommand(Optional.ofNullable(product.getName()), Optional.of(product.getPrice()), Optional.of(product.getWeight())));
+                        j = subscribedProducts.size();
                     }
                     j++;
                 }
-
+                i = products.size();
             }
 
             i++;

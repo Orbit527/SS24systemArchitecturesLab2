@@ -79,7 +79,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
             fridge.tell(new Fridge.ReceiptResponse(product));
         }
         if(loadable == false) {
-            getContext().getLog().info("Fridge has no Space for this product");
+            getContext().getLog().info("Product is too heavy for fridge");
         }
         return Behaviors.same();
     }
