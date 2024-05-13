@@ -69,13 +69,10 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
     }
 
     private Behavior<OrderProcessorCommand> onCurrentWeightResponse(CurrentWeightResponse response) {
-        System.out.println("Weight Test " + (response.productWeight + product.getWeight()));
         if(response.productWeight + product.getWeight() <= maxWeightLoad) {
             loadable = true;
         }
         if(storable == true && loadable == true) {
-            //TODO: Make it order things
-            System.out.println("MADE IT");
             fridge.tell(new Fridge.ReceiptResponse(product));
         }
         if(loadable == false) {
@@ -85,13 +82,11 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
     }
 
     private Behavior<OrderProcessorCommand> onCurrentSpaceResponse(CurrentSpaceResponse response) {
-        System.out.println("Space Test " + response.productAmount);
         if(response.productAmount + 1 <= maxStorableProducts) {
             storable = true;
         }
         if(storable == true && loadable == true) {
-            //TODO: Make it order things
-            System.out.println("MADE IT");
+
             fridge.tell(new Fridge.ReceiptResponse(product));
         }
         if(storable == false) {

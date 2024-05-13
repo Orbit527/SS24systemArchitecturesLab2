@@ -27,8 +27,6 @@ public class UI extends AbstractBehavior<Void> {
 
     private  UI(ActorContext<Void> context, ActorRef<TemperatureSensor.TemperatureCommand> tempSensor, ActorRef<AirCondition.AirConditionCommand> airCondition, ActorRef<Environment.EnvironmentCommand> environment, ActorRef<MediaStation.MediaStationCommand> mediaStation, ActorRef<Fridge.FridgeCommand> fridge) {
         super(context);
-        // TODO: implement actor and behavior as needed
-        // TODO: move UI initialization to appropriate place
         this.airCondition = airCondition;
         this.tempSensor = tempSensor;
         this.environment = environment;
@@ -50,7 +48,6 @@ public class UI extends AbstractBehavior<Void> {
     }
 
     public void runCommandLine() {
-        // TODO: Create Actor for UI Input-Handling?
         Scanner scanner = new Scanner(System.in);
         String[] input = null;
         String reader = "";
@@ -58,7 +55,6 @@ public class UI extends AbstractBehavior<Void> {
 
         while (!reader.equalsIgnoreCase("quit") && scanner.hasNextLine()) {
             reader = scanner.nextLine();
-            // TODO: change input handling
             String[] command = reader.split(" ");
             if(command[0].equals("t")) {
                 this.tempSensor.tell(new TemperatureSensor.RequestTemperature());
@@ -104,8 +100,31 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("orders")) {
                 this.fridge.tell(new Fridge.QueryOrdersCommand());
             }
+            if(command[0].equals("test")) {
+                //TODO: insert command values
+                try {
 
-                // TODO: process Input
+                this.environment.tell(new Environment.WeatherConditionsChanger(Optional.of(Environment.Weather.STORMY)));
+                this.environment.tell(new Environment.TemperatureChanger(Optional.of(23.5)));
+                /*
+                this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
+                this.mediaStation.tell(new MediaStation.PowerMediaStationOn(Boolean.valueOf(command[1])));
+                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie(true));
+                this.mediaStation.tell(new MediaStation.MediaStationPlayMovie(false));
+                */
+
+                this.fridge.tell(new Fridge.SubscribeProductCommand(Optional.of("Bacon"), Optional.of(15.99), Optional.of(0.8)));
+                this.fridge.tell(new Fridge.OrderProductCommand(Optional.of("Milk"), Optional.of(5.39), Optional.of(0.5)));
+                Thread.sleep(1000);
+                this.fridge.tell(new Fridge.ConsumeProductCommand(Optional.of("Bacon")));
+                Thread.sleep(1000);
+                this.fridge.tell(new Fridge.QueryProductsCommand());
+                this.fridge.tell(new Fridge.QueryOrdersCommand());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
         getContext().getLog().info("UI done");
     }

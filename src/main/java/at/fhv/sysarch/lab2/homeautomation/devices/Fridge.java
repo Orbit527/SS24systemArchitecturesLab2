@@ -177,8 +177,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     private Behavior<FridgeCommand> onOrderProductCommand(OrderProductCommand request) {
         Product product = new Product(request.productName.get(), request.productPrice.get(), request.productWeigth.get());
-
-        System.out.println(product.getName());
         ActorRef<OrderProcessor.OrderProcessorCommand> orderProcessor = getContext().spawn(OrderProcessor.create("9", "1", product, getContext().getSelf(), maxStorableProducts, maxWeightLoad, spaceSensor, weightSensor), UUID.randomUUID().toString());
 
         return Behaviors.same();
@@ -203,7 +201,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 }
                 i = products.size();
             }
-
             i++;
         }
         return Behaviors.same();
