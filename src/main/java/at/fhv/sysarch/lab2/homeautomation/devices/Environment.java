@@ -38,8 +38,6 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
     private final TimerScheduler<EnvironmentCommand> temperatureTimeScheduler;
     private final TimerScheduler<EnvironmentCommand> weatherTimeScheduler;
 
-    // TODO: Provide the means for manually setting the temperature
-
     public static class TemperatureSensorRequest implements EnvironmentCommand{
         public final String query;
         public final ActorRef<TemperatureSensor.TemperatureCommand> replyTo;
@@ -69,7 +67,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         this.temperatureTimeScheduler = tempTimer;
         this.weatherTimeScheduler = weatherTimer;
         this.temperatureTimeScheduler.startTimerAtFixedRate(new TemperatureChanger(Optional.ofNullable((null))), Duration.ofSeconds(2));
-        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10)); //TODO extend duration
+        this.weatherTimeScheduler.startTimerAtFixedRate(new WeatherConditionsChanger(Optional.ofNullable(null)), Duration.ofSeconds(10));
     }
 
     @Override
@@ -103,7 +101,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         else {
             this.temperature += -2 + (float) (Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         }
-        //getContext().getLog().info("Environment received {}", temperature);
+        getContext().getLog().info("Environment received {}", temperature);
 
         return this;
     }
