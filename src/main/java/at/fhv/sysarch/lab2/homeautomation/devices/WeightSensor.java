@@ -65,7 +65,6 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
     }
 
     private Behavior<WeightSensorCommand> onCurrentWeightRequest(CurrentWeightRequest request) {
-        System.out.println("WEIGHT TESTING");
         request.replyTo.tell(new OrderProcessor.CurrentWeightResponse(productWeight));
         return Behaviors.same();
     }

@@ -26,6 +26,8 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         public CurrentWeightResponse(double productWeight) {this.productWeight = productWeight;}
     }
 
+    public static class Shutdown implements OrderProcessorCommand {}
+
     private String groupId;
     private String deviceId;
 
@@ -63,9 +65,14 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         return newReceiveBuilder()
                 .onMessage(CurrentSpaceResponse.class, this::onCurrentSpaceResponse)
                 .onMessage(CurrentWeightResponse.class, this::onCurrentWeightResponse)
+                .onMessage(Shutdown.class, this::onShutdown)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<OrderProcessorCommand> onShutdown(Shutdown command) {
+        return Behaviors.stopped();
     }
 
     private Behavior<OrderProcessorCommand> onCurrentWeightResponse(CurrentWeightResponse response) {
@@ -74,6 +81,7 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         }
         if(storable == true && loadable == true) {
             fridge.tell(new Fridge.ReceiptResponse(product));
+            getContext().getSelf().tell(new Shutdown());
         }
         if(loadable == false) {
             getContext().getLog().info("Product is too heavy for fridge");
@@ -86,8 +94,8 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
             storable = true;
         }
         if(storable == true && loadable == true) {
-
             fridge.tell(new Fridge.ReceiptResponse(product));
+            getContext().getSelf().tell(new Shutdown());
         }
         if(storable == false) {
             getContext().getLog().info("Fridge has no Space for this product");
@@ -95,7 +103,6 @@ public class OrderProcessor extends AbstractBehavior<OrderProcessor.OrderProcess
         return Behaviors.same();
     }
 
-    //TODO: Figure out how to stop an actor
     private OrderProcessor onPostStop() {
         getContext().getLog().info("Order Processor actor stopped");
         return this;
