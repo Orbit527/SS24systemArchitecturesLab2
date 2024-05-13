@@ -98,6 +98,8 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static class QueryOrdersCommand implements FridgeCommand {}
+
 
     private String groupId;
     private String deviceId;
@@ -112,6 +114,8 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
     private ArrayList<Product> products = new ArrayList<>();
 
     private ArrayList<Product> subscribedProducts = new ArrayList<>();
+
+    private ArrayList<Product> receipts = new ArrayList<>();
 
     private Fridge(ActorContext<FridgeCommand> context, String groupId, String deviceId, int maxStorableProducts, int maxWeightLoad) {
         super(context);
@@ -129,8 +133,6 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     }
 
-    // TODO: Add Method for Querying history of orders
-
     @Override
     public Receive<FridgeCommand> createReceive() {
         return newReceiveBuilder()
@@ -141,9 +143,21 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(OrderProductCommand.class, this::onOrderProductCommand)
                 .onMessage(ReceiptResponse.class, this::onReceiptResponse)
                 .onMessage(SubscribeProductCommand.class, this::onSubscribeProductCommand)
+                .onMessage(QueryOrdersCommand.class, this::onQueryOrdersCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onQueryOrdersCommand(QueryOrdersCommand request) {
+        int i = 1;
+        String output = receipts.size() > 0 ? receipts.get(0).getName() : "";
+        while (i < receipts.size()) {
+            output = output + ", " + receipts.get(i).getName();
+            i++;
+        }
+        getContext().getLog().info(output);
+        return Behaviors.same();
     }
 
     private Behavior<FridgeCommand> onSubscribeProductCommand(SubscribeProductCommand command) {
@@ -156,6 +170,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     private Behavior<FridgeCommand> onReceiptResponse(ReceiptResponse response) {
         products.add(response.product);
+        receipts.add(response.product);
         getContext().getLog().info(response.product.getWeight() + " kg of " + response.product.getName() + " ordered for " + response.product.getPrice());
         return Behaviors.same();
     }
