@@ -23,9 +23,9 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     public interface AirConditionCommand {}
 
     public static final class PowerAirCondition implements AirConditionCommand {
-        final Optional<Boolean> value;
+        final Boolean value;
 
-        public PowerAirCondition(Optional<Boolean> value) {
+        public PowerAirCondition(Boolean value) {
             this.value = value;
         }
     }
@@ -66,13 +66,12 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     private Behavior<AirConditionCommand> onReadTemperature(EnrichedTemperature r) {
-        getContext().getLog().info("Aircondition reading {}", r.value.get());
-
         if(this.poweredOn == true) {
-            if (r.value.get() >= 15 && this.active == false) {
+            getContext().getLog().info("Aircondition reading {}", r.value.get());
+            if (r.value.get() >= 20 && this.active == false) {
                 getContext().getLog().info("Aircondition actived");
                 this.active = true;
-            } else if (r.value.get() < 15 && this.active == true) {
+            } else if (r.value.get() < 20 && this.active == true) {
                 getContext().getLog().info("Aircondition deactived");
                 this.active = false;
             }
@@ -82,43 +81,14 @@ public class AirCondition extends AbstractBehavior<AirCondition.AirConditionComm
     }
 
     private Behavior<AirConditionCommand> onPowerAirCondition(PowerAirCondition r) {
-        boolean value = r.value.orElse(false);
-        if (value) {
-            return onPowerAirConditionOn(r);
-        } else {
-            return onPowerAirConditionOff(r);
+        this.poweredOn = r.value;
+        if (this.poweredOn == false) {
+            this.active = false;
         }
-    }
-
-    private Behavior<AirConditionCommand> onPowerAirConditionOff(PowerAirCondition r) {
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
-
-        if(r.value.get() == false) {
-            return this.powerOff();
-        }
+        getContext().getLog().info("Air Condition active: " + this.poweredOn);
         return this;
     }
 
-    private Behavior<AirConditionCommand> onPowerAirConditionOn(PowerAirCondition r) {
-        getContext().getLog().info("Turning Aircondition to {}", r.value);
-
-        if(r.value.get() == true) {
-            return Behaviors.receive(AirConditionCommand.class)
-                    .onMessage(EnrichedTemperature.class, this::onReadTemperature)
-                    .onMessage(PowerAirCondition.class, this::onPowerAirConditionOff)
-                    .onSignal(PostStop.class, signal -> onPostStop())
-                    .build();
-        }
-        return this;
-    }
-
-    private Behavior<AirConditionCommand> powerOff() {
-        this.poweredOn = false;
-        return Behaviors.receive(AirConditionCommand.class)
-                .onMessage(PowerAirCondition.class, this::onPowerAirConditionOn)
-                .onSignal(PostStop.class, signal -> onPostStop())
-                .build();
-    }
 
     private AirCondition onPostStop() {
         getContext().getLog().info("TemperatureSensor actor {}-{} stopped", groupId, deviceId);

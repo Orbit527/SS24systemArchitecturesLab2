@@ -64,7 +64,7 @@ public class UI extends AbstractBehavior<Void> {
                 this.tempSensor.tell(new TemperatureSensor.RequestTemperature());
             }
             if(command[0].equals("a")) {
-                this.airCondition.tell(new AirCondition.PowerAirCondition(Optional.of(Boolean.valueOf(command[1]))));
+                this.airCondition.tell(new AirCondition.PowerAirCondition(Boolean.valueOf(command[1])));
             }
             if(command[0].equals("e") && command[1].equals("w")) {
                 this.environment.tell(new Environment.WeatherConditionsChanger(Optional.of(Environment.Weather.valueOf(command[2]))));
