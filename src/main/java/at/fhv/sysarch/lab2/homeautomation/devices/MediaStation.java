@@ -61,13 +61,13 @@ public class MediaStation extends AbstractBehavior<MediaStation.MediaStationComm
 
     private Behavior<MediaStationCommand> onMediaStationPlayMovie(MediaStationPlayMovie val) {
         if (this.poweredOn == true) {
-            this.moviePlaying = true;
-            this.blinds.tell(new Blinds.setMediaStationStatus(val.play));
 
-            if (val.play == true) {
-                getContext().getLog().info("Media Station now playing Movie!");
+            if (this.moviePlaying != val.play) {
+                this.moviePlaying = val.play;
+                this.blinds.tell(new Blinds.setMediaStationStatus(val.play));
+                getContext().getLog().info("Media Station " + (this.moviePlaying ? "now playing Movie!" : "stopped playing Movie!"));
             } else {
-                getContext().getLog().info("Media Station stopped playing Movie!");
+                getContext().getLog().info("Media Station already " + (this.moviePlaying ? "playing Movie!" : "stopped playing Movie!"));
             }
 
         } else {
