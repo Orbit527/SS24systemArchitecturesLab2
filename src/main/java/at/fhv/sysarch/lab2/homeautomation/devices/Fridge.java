@@ -162,7 +162,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             output = output + ", " + receipts.get(i).getName();
             i++;
         }
-        getContext().getLog().info(output);
+        getContext().getLog().info("Orders: " + output);
         return Behaviors.same();
     }
 
@@ -171,6 +171,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         while(i < subscribedProducts.size()) {
             if(subscribedProducts.get(i).getName().equals(command.productName.get())) {
                 subscribedProducts.remove(i);
+                getContext().getLog().info("Unsubscribed " + command.productName.get());
                 i = subscribedProducts.size();
             }
             i++;
@@ -231,7 +232,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             output = output + ", " + products.get(i).getName();
             i++;
         }
-        getContext().getLog().info(output);
+        getContext().getLog().info("Procuts in Fridge: " + output);
         return Behaviors.same();
     }
 
