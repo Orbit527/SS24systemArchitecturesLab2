@@ -98,6 +98,11 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
         }
     }
 
+    public static class UnsubscribeProductCommand implements FridgeCommand {
+        final Optional<String> productName;
+        public UnsubscribeProductCommand(Optional<String> productName) {this.productName = productName;}
+    }
+
     public static class QueryOrdersCommand implements FridgeCommand {}
 
 
@@ -143,6 +148,7 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(OrderProductCommand.class, this::onOrderProductCommand)
                 .onMessage(ReceiptResponse.class, this::onReceiptResponse)
                 .onMessage(SubscribeProductCommand.class, this::onSubscribeProductCommand)
+                .onMessage(UnsubscribeProductCommand.class, this::onUnsubscribeProductCommand)
                 .onMessage(QueryOrdersCommand.class, this::onQueryOrdersCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
@@ -157,6 +163,18 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
             i++;
         }
         getContext().getLog().info(output);
+        return Behaviors.same();
+    }
+
+    private Behavior<FridgeCommand> onUnsubscribeProductCommand(UnsubscribeProductCommand command) {
+        int i = 0;
+        while(i < subscribedProducts.size()) {
+            if(subscribedProducts.get(i).getName().equals(command.productName.get())) {
+                subscribedProducts.remove(i);
+                i = subscribedProducts.size();
+            }
+            i++;
+        }
         return Behaviors.same();
     }
 

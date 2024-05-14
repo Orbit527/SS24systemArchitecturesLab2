@@ -96,6 +96,11 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("fridge") && command[1].equals("subscribe")) {
                 this.fridge.tell(new Fridge.SubscribeProductCommand(Optional.of(String.valueOf(command[2])), Optional.of(Double.valueOf(command[3])), Optional.of(Double.valueOf(command[4]))));
             }
+            // command strcuture: fridge unsubscribe productName
+            // command example: fridge unsubscribe Bacon
+            if(command[0].equals("fridge") && command[1].equals("unsubscribe")) {
+                this.fridge.tell(new Fridge.UnsubscribeProductCommand(Optional.of(String.valueOf(command[2]))));
+            }
             // command: fridge query orders
             if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("orders")) {
                 this.fridge.tell(new Fridge.QueryOrdersCommand());
