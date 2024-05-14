@@ -67,7 +67,7 @@ public class WeatherSensor extends AbstractBehavior<WeatherSensor.WeatherSensorC
     }
 
     private Behavior<WeatherSensorCommand> onResponseWeather(ResponseWeather r) {
-        getContext().getLog().info("WeatherSensor: " + r.value);
+        getContext().getLog().debug("WeatherSensor: " + r.value);
 
         //send received Weather to Blinds
         this.blinds.tell(new Blinds.setWeatherStatus(r.value));

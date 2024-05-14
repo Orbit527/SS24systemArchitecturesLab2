@@ -65,7 +65,7 @@ public class TemperatureSensor extends AbstractBehavior<TemperatureSensor.Temper
 
     private Behavior<TemperatureCommand> onResponseTemperature(ResponseTemperature r) {
 
-        getContext().getLog().info("TemperatureSensor received from Environment {}", r.value.get());
+        getContext().getLog().debug("TemperatureSensor received from Environment {}", r.value.get());
 
         //send received Temp to AC
         this.airCondition.tell(new AirCondition.EnrichedTemperature(r.value, Optional.of("Celsius")));
