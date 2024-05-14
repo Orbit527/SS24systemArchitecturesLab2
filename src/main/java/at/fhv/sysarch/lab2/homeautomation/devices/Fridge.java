@@ -105,6 +105,8 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
 
     public static class QueryOrdersCommand implements FridgeCommand {}
 
+    public static class QuerySubscriptionCommand implements FridgeCommand {}
+
 
     private String groupId;
     private String deviceId;
@@ -150,9 +152,21 @@ public class Fridge extends AbstractBehavior<Fridge.FridgeCommand> {
                 .onMessage(SubscribeProductCommand.class, this::onSubscribeProductCommand)
                 .onMessage(UnsubscribeProductCommand.class, this::onUnsubscribeProductCommand)
                 .onMessage(QueryOrdersCommand.class, this::onQueryOrdersCommand)
+                .onMessage(QuerySubscriptionCommand.class, this::onQuerySubscriptionCommand)
 
                 .onSignal(PostStop.class, signal -> onPostStop())
                 .build();
+    }
+
+    private Behavior<FridgeCommand> onQuerySubscriptionCommand(QuerySubscriptionCommand command) {
+        int i = 1;
+        String output = subscribedProducts.size() > 0 ? subscribedProducts.get(0).getName() : "";
+        while (i < subscribedProducts.size()) {
+            output = output + ", " + subscribedProducts.get(i).getName();
+            i++;
+        }
+        getContext().getLog().info("Subscriptions: " + output);
+        return Behaviors.same();
     }
 
     private Behavior<FridgeCommand> onQueryOrdersCommand(QueryOrdersCommand request) {

@@ -105,6 +105,10 @@ public class UI extends AbstractBehavior<Void> {
             if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("orders")) {
                 this.fridge.tell(new Fridge.QueryOrdersCommand());
             }
+            // command: fridge query subscription
+            if(command[0].equals("fridge") && command[1].equals("query") && command[2].equals("subscription")) {
+                this.fridge.tell(new Fridge.QuerySubscriptionCommand());
+            }
             if(command[0].equals("test")) {
                 //TODO: insert command values
                 try {
