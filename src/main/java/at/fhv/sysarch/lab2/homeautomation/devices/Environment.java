@@ -101,7 +101,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         else {
             this.temperature += -2 + (float) (Math.random() * (2 - -2)); // makes random number changes within a range (-2, 2)
         }
-        getContext().getLog().info("Environment received {}", temperature);
+        getContext().getLog().debug("Environment received {}", temperature);
 
         return this;
     }
@@ -115,7 +115,7 @@ public class Environment extends AbstractBehavior<Environment.EnvironmentCommand
         } while (weathers[i] == isSunny);
         // sets either the w or the random weather value
         isSunny = w.isSunny.orElse(weathers[i]);
-        getContext().getLog().info("Environment Change Sun to {}", isSunny);
+        getContext().getLog().debug("Environment Change Sun to {}", isSunny);
 
         return this;
     }

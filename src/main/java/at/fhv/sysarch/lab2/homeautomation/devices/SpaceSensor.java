@@ -76,7 +76,7 @@ public class SpaceSensor extends AbstractBehavior<SpaceSensor.SpaceSensorCommand
 
     private Behavior<SpaceSensorCommand> onProductsResponse(ProductsResponse response) {
         productAmount = response.result.size();
-        getContext().getLog().info("Products are taking up " + response.result.size() + " space in fridge");
+        getContext().getLog().debug("Products are taking up " + response.result.size() + " space in fridge");
         return Behaviors.same();
     }
 

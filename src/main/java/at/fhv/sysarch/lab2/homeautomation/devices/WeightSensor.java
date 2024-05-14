@@ -82,7 +82,7 @@ public class WeightSensor extends AbstractBehavior<WeightSensor.WeightSensorComm
             i++;
         }
         productWeight = temp;
-        getContext().getLog().info("Products in fridge weigh " + productWeight + " kg");
+        getContext().getLog().debug("Products in fridge weigh " + productWeight + " kg");
         return Behaviors.same();
     }
 
