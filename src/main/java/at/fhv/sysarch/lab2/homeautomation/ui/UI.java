@@ -125,8 +125,10 @@ public class UI extends AbstractBehavior<Void> {
                 this.fridge.tell(new Fridge.SubscribeProductCommand(Optional.of("Bacon"), Optional.of(15.99), Optional.of(0.8)));
                 this.fridge.tell(new Fridge.OrderProductCommand(Optional.of("Milk"), Optional.of(5.39), Optional.of(0.5)));
                 Thread.sleep(1000);
+                this.fridge.tell(new Fridge.QuerySubscriptionCommand());
                 this.fridge.tell(new Fridge.ConsumeProductCommand(Optional.of("Bacon")));
                 Thread.sleep(1000);
+                this.fridge.tell(new Fridge.UnsubscribeProductCommand(Optional.of("Bacon")));
                 this.fridge.tell(new Fridge.QueryProductsCommand());
                 this.fridge.tell(new Fridge.QueryOrdersCommand());
                 } catch (InterruptedException e) {
