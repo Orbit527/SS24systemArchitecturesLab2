@@ -110,7 +110,6 @@ public class UI extends AbstractBehavior<Void> {
                 this.fridge.tell(new Fridge.QuerySubscriptionCommand());
             }
             if(command[0].equals("test")) {
-                //TODO: insert command values
                 try {
 
                     this.airCondition.tell(new AirCondition.PowerAirCondition(false));

@@ -13,7 +13,6 @@ import at.fhv.sysarch.lab2.homeautomation.ui.UI;
 public class HomeAutomationController extends AbstractBehavior<Void>{
     private ActorRef<TemperatureSensor.TemperatureCommand> tempSensor;
     private  ActorRef<AirCondition.AirConditionCommand> airCondition;
-
     private ActorRef<WeatherSensor.WeatherSensorCommand> weatherSensor;
     private ActorRef<Blinds.BlindsCommand> blinds;
     private ActorRef<MediaStation.MediaStationCommand> mediaStation;
@@ -27,7 +26,6 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
 
     private  HomeAutomationController(ActorContext<Void> context) {
         super(context);
-        // TODO: consider guardians and hierarchies. Who should create and communicate with which Actors?
         this.airCondition = getContext().spawn(AirCondition.create("2", "1"), "AirCondition");
 
         this.blinds = getContext().spawn(Blinds.create("4", "1"), "blinds");
@@ -39,7 +37,6 @@ public class HomeAutomationController extends AbstractBehavior<Void>{
         this.weatherSensor = getContext().spawn(WeatherSensor.create(this.environment, this.blinds, "3", "1"), "weatherSensor");
 
         this.fridge = getContext().spawn(Fridge.create("6", "1", 5, 10), "Fridge");
-
 
         ActorRef<Void> ui = getContext().spawn(UI.create(this.tempSensor, this.airCondition, this.environment, this.mediaStation, this.fridge), "UI");
 
